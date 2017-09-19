@@ -1,0 +1,111 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<event size="1" name="graph"/>
+
+
+<!--list of constants-->
+<constant value="1000" name="OBSTACLE"/>
+
+
+<!--source code of node thymio-II-->
+<node name="thymio-II">var acc_calc
+var counter
+var led_pulse
+var temp
+var temp2
+var acc_abs
+var stepsound
+var vmax=600
+var vmin=-600
+
+
+onevent acc
+	emit graph acc_calc
+	acc_abs = abs(acc[0]) + abs(acc[1]) + abs(acc[2])
+	acc_calc = acc_calc + acc_calc + acc_calc + acc_abs
+	acc_calc = acc_calc/4	
+	when acc_calc &lt; 14 do
+		call sound.system(4)
+	end
+	when acc_calc > 14 do			
+		call leds.top(15,0,0)
+	end
+	
+	if acc_calc &lt; 14 then
+		counter=counter+1
+		if counter > 2 then
+			if counter == 4 then
+				counter = 0
+			end
+			call leds.top(32,0,0)		
+		else
+			call leds.top(0,0,0)		
+		end
+	else
+		#Body color pulse
+		led_pulse = led_pulse + 2
+		if led_pulse > 0 then
+			call leds.top(led_pulse, 0,0)			
+			if led_pulse > 40 then
+				led_pulse = -64
+			end
+		else 
+			temp=-led_pulse/2
+			call leds.top(temp, 0,0)
+		
+		end
+	end
+
+
+onevent tap
+	call sound.system(5)
+	
+	
+onevent sound.finished
+	stepsound=0
+	if acc_calc &lt; 14   then 
+		call sound.system(4)
+	end 
+
+onevent prox 
+    #Breintenberg obtacle avoidance
+    if prox.horizontal[1]>OBSTACLE and prox.horizontal[2]>OBSTACLE and prox.horizontal[3]>OBSTACLE and (prox.horizontal[5]>OBSTACLE or prox.horizontal[6]>OBSTACLE) and (prox.ground.reflected[0]>130 and prox.ground.reflected[1]>130) then
+    	motor.left.target=0
+        motor.right.target=0
+        if  stepsound==0 then
+        	call sound.system(4)
+        	stepsound=1
+        end    
+    elseif prox.horizontal[0]>OBSTACLE or prox.horizontal[1]>OBSTACLE or prox.horizontal[2]>OBSTACLE or prox.horizontal[3]>OBSTACLE or 	prox.horizontal[4]>OBSTACLE then
+        temp=(prox.horizontal[0]/5+prox.horizontal[1]/4+prox.horizontal[2]/3+prox.horizontal[3]/4+prox.horizontal[4]/5)
+        temp2=prox.horizontal[0]/6+prox.horizontal[1]/5+prox.horizontal[3]/-5+prox.horizontal[4]/-6
+        motor.left.target=-(temp+temp2)
+        motor.right.target=-(temp-temp2)
+    elseif prox.horizontal[5]>OBSTACLE or prox.horizontal[6]>OBSTACLE  then
+        temp=4
+        motor.left.target=prox.horizontal[5]/temp
+        motor.right.target=prox.horizontal[6]/temp
+        call math.min(motor.left.target, motor.left.target, vmax)
+        call math.max(motor.left.target,motor.left.target, vmin)
+		call math.min(motor.right.target, motor.right.target, vmax)
+        call math.max(motor.right.target,motor.right.target, vmin)
+    else
+    	motor.left.target=0
+        motor.right.target=0
+    end
+    #Detect table border 
+    if prox.ground.reflected[0]&lt;130 or prox.ground.reflected[1]&lt;130 then 
+            motor.left.target=0
+            motor.right.target=0
+        call leds.bottom.left(32,0,0)
+        call leds.bottom.right(32,0,0)
+    else
+        call leds.bottom.left(0,0,0)
+        call leds.bottom.right(0,0,0)
+    end</node>
+
+
+</network>

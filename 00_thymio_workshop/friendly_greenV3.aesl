@@ -1,0 +1,134 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="500" name="DETECT"/>
+
+
+<!--source code of node thymio-II-->
+<node name="thymio-II">var l[8]
+var led_state=0 
+var fixed
+var led_pulse
+var temp
+var i
+
+var speed_diff
+var speed=300
+var speed_l=0
+var max
+var mi
+var t
+var sound_done =0
+
+timer.period[0]=20
+call leds.circle(0,0,0,32,32,32,0,0)
+
+onevent buttons
+	when button.forward==1 do #increase speed
+		speed=speed+50
+		if speed>500 then
+			speed=500
+		end
+	end
+	when button.backward==1 do #decrease speed
+		speed=speed-50
+		if speed&lt;-300 then
+			speed=-300
+		end
+	end
+	when button.center==1 do #stop robot
+		speed=0
+		motor.left.target=0
+		motor.right.target=0
+	end
+
+onevent timer0
+	#Body color pulse
+	led_pulse = led_pulse + 1
+	if led_pulse > 0 then
+		call leds.top(0, led_pulse, 0)
+		if led_pulse > 40 then
+			led_pulse = -128
+		end
+	else 
+	temp=-led_pulse/4
+	call leds.top(0, temp, 0)
+	end
+
+
+onevent prox 
+	#Follower
+	max = prox.horizontal[0]
+	mi = 0
+	speed_l=0
+	for i in 0:4 do 
+		if prox.horizontal[i]> max then
+			max = prox.horizontal[i]
+			mi = i
+		end
+	end
+	
+	t = 2 - mi
+	speed_diff = t * (speed / 2)
+	if max > 3500 then
+		speed_l = (3500 - max) / 2
+	end
+	if (max > 4000) then
+		speed_l = -speed 
+	end
+	if (max &lt; 3000) then
+		t = 300 - (max - 1000) / 7
+		speed_l = t
+	end
+	
+	if (max &lt; 2000) then
+		speed_l = speed 
+	end
+	
+	if(speed_l > speed) then
+		speed_l = speed
+	end
+	if(speed_l &lt; -speed) then
+		speed_l = -speed
+	end
+	
+	if(max &lt; DETECT) then
+		motor.left.target = 0
+		motor.right.target = 0
+	 else 
+		motor.right.target = speed_diff + speed_l
+		motor.left.target = speed_l - speed_diff
+	 end
+    #Sound
+	when(max > DETECT) do
+		call sound.system(6)
+	end
+	
+	if (speed_diff == 0 and speed_l == 0 and sound_done == 0 and max > DETECT) then
+		sound_done = 1
+		call sound.system(7)
+	end
+	if(speed_diff != 0 or max &lt; DETECT) then
+		sound_done = 0
+	end
+	
+	#Detecte table border 
+	if prox.ground.reflected[0]&lt;130 or prox.ground.reflected[1]&lt;130 then 
+			motor.left.target=0
+			motor.right.target=0
+		call leds.bottom.left(32,0,0)
+		call leds.bottom.right(32,0,0)
+	else
+		call leds.bottom.left(0,0,0)
+		call leds.bottom.right(0,0,0)
+	end
+	
+</node>
+
+
+</network>

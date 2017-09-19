@@ -1,0 +1,115 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<event size="0" name="blah"/>
+
+
+<!--list of constants-->
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II">#### Variables list
+var temp_led
+var temp_braitenberg
+var temp_braitenberg_turn
+var temp_braitenberg_left
+var temp_braitenberg_right
+var weights_braitenberg[] = [1,2,3,2,1]
+var weights_braitenberg_turn[] = [-4,-3,0,3,4]
+var speed = 200
+var vmin = -600
+var vmax = 600
+var led[8]
+var led_state = 0 
+var fixed
+var led_pulse
+
+#### Timer 0 set to 20 ms
+timer.period[0] = 20
+
+#### Event triggered on timer 0 period (here, 20 ms)
+onevent timer0	
+	# Led ring animation
+	call math.fill(led, 0)			
+	led_state = (led_state + 2) &amp; 0xff
+	fixed = led_state / 32
+	led[fixed] = 32
+	led[(fixed - 1) &amp; 0x7] = 32 - (led_state &amp; 0x1F)
+	led[(fixed + 1) &amp; 0x7] = led_state &amp; 0x1F
+	call leds.circle(led[0], led[1], led[2], led[3],
+		led[4], led[5], led[6], led[7])
+	
+	# Body color pulse
+	led_pulse = led_pulse + 1	
+	if led_pulse > 0 then
+		call leds.top(led_pulse, led_pulse, 0)
+		if led_pulse > 32 then
+			led_pulse = -32
+		end
+	else 
+		call leds.top(-led_pulse, -led_pulse, 0)
+	end
+
+#### Event triggered when a button is pressed
+onevent buttons
+	# Button forward is pressed, so increase speed
+	when button.forward == 1 do 		
+		speed += 50
+		call math.min(speed, speed, 500)
+	end
+	# Button backward is pressed, so decrease speed
+	when button.backward == 1 do 
+		speed -= 50
+		call math.max(speed, speed, -300)
+	end
+	# Button center is pressed, so stop the robot
+	when button.center == 1 do
+		speed = 0
+		motor.left.target = 0
+		motor.right.target = 0
+	end
+
+#### Event triggered when IR sensors update (10 Hz)
+onevent prox 
+	# Braitenberg obstacle avoidance
+	if speed >0 then
+		call math.dot(temp_braitenberg, prox.horizontal[0:4],
+			weights_braitenberg, 4)
+		call math.dot(temp_braitenberg_turn, prox.horizontal[0:4],
+			weights_braitenberg_turn, 4)
+		call math.muldiv(temp_braitenberg_left, speed,
+			temp_braitenberg + temp_braitenberg_turn, 125)
+		call math.muldiv(temp_braitenberg_right, speed,
+			temp_braitenberg - temp_braitenberg_turn, 125)
+		motor.left.target = speed - temp_braitenberg_left
+		motor.right.target = speed - temp_braitenberg_right
+	elseif speed &lt; 0 then
+		temp_braitenberg = -300 / speed
+		motor.left.target = speed + prox.horizontal[6] / temp_braitenberg
+		motor.right.target = speed + prox.horizontal[5] / temp_braitenberg
+	end
+	# Saturation of left and right speed
+	call math.min(motor.left.target, motor.left.target, vmax)
+	call math.max(motor.left.target, motor.left.target, vmin)
+	call math.min(motor.right.target, motor.right.target, vmax)
+	call math.max(motor.right.target, motor.right.target, vmin)
+	
+	# Table border detection
+	if prox.ground.delta[0] &lt; 130 or prox.ground.delta[1] &lt; 130 then 
+		motor.left.target = 0
+		motor.right.target = 0
+		call leds.bottom.left(32, 0, 0)
+		call leds.bottom.right(32, 0, 0)
+	else
+		call leds.bottom.left(0, 0, 0)
+		call leds.bottom.right(0, 0, 0)
+	end</node>
+
+
+</network>

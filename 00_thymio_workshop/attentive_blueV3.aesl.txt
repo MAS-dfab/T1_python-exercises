@@ -1,0 +1,169 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<event size="1" name="test"/>
+
+
+<!--list of constants-->
+<constant value="0" name="NOCLAP"/>
+<constant value="1" name="ONECLAP"/>
+<constant value="2" name="TWOCLAP"/>
+<constant value="3" name="THREECLAP"/>
+<constant value="0" name="STOP"/>
+<constant value="1" name="RUN"/>
+<constant value="2" name="TURNLEFT"/>
+<constant value="3" name="TURNRIGHT"/>
+<constant value="80" name="TURN_SPEED"/>
+<constant value="80" name="FRONT_SPEED"/>
+
+
+<!--source code of node thymio-II-->
+<node name="thymio-II">var direction
+var time
+var clap
+var claptime
+var lastdirection 
+var micled =0 
+var tempmic
+var led_pulse
+var temp 
+var disco
+var leds_rainbow[160]
+var i
+var j
+var led_i
+var r
+var g
+var b
+
+call math.fill(leds_rainbow,0)
+for j in 0:52 do
+        leds_rainbow[j] = j*2
+end
+for j in 53:105 do
+        leds_rainbow[j] = 53*2 - (j - 53) * 2
+end
+
+
+mic.threshold =250
+
+
+timer.period[0]=10
+timer.period[1]=15
+motor.left.target =0
+motor.right.target =0	
+
+sub rainbow
+	led_i = (led_i + 2) % 160
+    r = (led_i) % 160
+    r = leds_rainbow[r] / 4
+    
+    g = (led_i+ 53) % 160
+    g = leds_rainbow[g] / 4
+    
+    b = (led_i + 106) % 160
+    b = leds_rainbow[b] / 4
+    call leds.top(r,g,b)
+	call leds.bottom.left(b,r,g)
+    call leds.bottom.right(g,b,r)
+    
+        
+        
+onevent timer0
+if  time&lt;200 then
+	time=time+1
+end
+if time>100 then
+	clap = NOCLAP
+	call leds.circle(0,0,0, 0, 0, 0,0, 0)
+end
+if  time == 5 then
+	if direction == RUN and clap==ONECLAP then
+   		direction = TURNRIGHT
+   		motor.left.target = TURN_SPEED
+		motor.right.target = -TURN_SPEED
+	elseif  direction == TURNRIGHT and clap==ONECLAP then 
+	  	direction = RUN
+	  	motor.left.target = FRONT_SPEED
+	  	motor.right.target = FRONT_SPEED
+	end	
+end
+if  time == 60 then
+	if direction == STOP and clap==TWOCLAP then
+	   direction = RUN
+	   motor.left.target = FRONT_SPEED
+	   motor.right.target = FRONT_SPEED
+	elseif  clap==TWOCLAP then 
+	   direction = STOP
+	   motor.left.target = 0
+	   motor.right.target = 0
+	end
+end
+if  time == 80 then	
+	if  clap==THREECLAP then 
+	   disco=RUN
+	   direction = RUN
+	   motor.left.target = TURN_SPEED
+	   motor.right.target =0
+	end
+end
+
+onevent mic
+if clap==NOCLAP then
+	time = 0
+	clap = ONECLAP
+	call leds.circle(32,0,0, 0, 0, 0,0, 0)
+elseif clap==ONECLAP and 5 &lt; time and time &lt; 60 then
+	clap = TWOCLAP
+	call leds.circle(32,32,0, 0, 0, 0,0, 32)
+	claptime = time + 2
+elseif clap==TWOCLAP and claptime &lt; time and time &lt; 80 then
+	clap = THREECLAP
+	call leds.circle(32,32,32, 0, 0, 0,32, 32)
+	emit test time
+	led_pulse=0
+	call sound.system(7)
+end 
+
+onevent prox
+ #Detect table border 
+    if prox.ground.delta[0]&lt;130 or prox.ground.delta[1]&lt;130 then 
+            motor.left.target=0
+            motor.right.target=0
+        call leds.bottom.left(32,0,0)
+        call leds.bottom.right(32,0,0)
+    elseif  disco==STOP then
+        call leds.bottom.left(0,0,0)
+        call leds.bottom.right(0,0,0)
+    end
+
+
+onevent timer1
+#Body color pulse
+if  disco==RUN then
+	callsub rainbow
+	led_pulse = led_pulse + 1
+	 if led_pulse == 128 then
+	 	disco=STOP
+	 	led_pulse=0
+	 	call leds.bottom.left(0,0,0)
+        call leds.bottom.right(0,0,0)
+	 end
+else
+    led_pulse = led_pulse + 1
+    if led_pulse > 0 then
+        call leds.top(0, 0, led_pulse)
+        if led_pulse > 40 then
+            led_pulse = -128
+        end
+    else 
+	   	temp=-led_pulse/4
+	    call leds.top(0, 0, temp)
+    end
+end
+</node>
+
+
+</network>

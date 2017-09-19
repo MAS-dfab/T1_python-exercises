@@ -1,0 +1,126 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node name="thymio-II">var temp
+var rc5_speed_l
+var rc5_speed_t
+var vmin=-600
+var vmax=600
+
+var led_pulse
+
+timer.period[0]=20
+
+sub setmotor
+	call math.min(rc5_speed_t, rc5_speed_t, vmax)
+	call math.max(rc5_speed_t, rc5_speed_t, vmin)
+	call math.min(rc5_speed_l, rc5_speed_l, vmax)
+	call math.max(rc5_speed_l, rc5_speed_l, vmin)	
+	motor.left.target  = rc5_speed_l + rc5_speed_t
+	motor.right.target  = rc5_speed_l - rc5_speed_t
+
+
+onevent button.left
+	if button.left==1 then
+		rc5_speed_t = -200
+	end
+	callsub setmotor
+	
+onevent button.right
+	if button.right==1 then
+		rc5_speed_t = 200
+	end
+	callsub setmotor
+	
+onevent button.center
+	if button.center==1 then
+		rc5_speed_t=0
+		rc5_speed_l=0
+	end
+	callsub setmotor
+
+onevent button.backward
+	if button.backward==1 then
+		if rc5_speed_t !=0 then
+			rc5_speed_t = 0
+		else
+			rc5_speed_l = rc5_speed_l-200
+		end
+	end
+	callsub setmotor
+	
+onevent button.forward
+	if button.forward==1 then
+		if rc5_speed_t !=0 then
+			rc5_speed_t = 0
+		else
+			rc5_speed_l = rc5_speed_l+200
+		end
+	end
+	callsub setmotor
+	
+onevent buttons	
+	when button.backward==1 and button.forward==1 do
+		rc5_speed_l = 0
+	end
+	when button.right==1 and button.left==1 do
+		rc5_speed_t = 0
+	end
+	callsub setmotor 
+	
+	
+onevent timer0
+	#Body color pulse
+	led_pulse = led_pulse + 1
+	if led_pulse > 0 then
+		call leds.top(led_pulse,0 , led_pulse)
+		if led_pulse > 40 then
+			led_pulse = -64
+		end
+	else 
+	temp=-led_pulse/2
+	call leds.top(temp, 0, temp)
+	end
+
+	
+onevent rc5
+	if rc5.command !=0 then
+		if rc5.command == 2 or rc5.command == 80 or rc5.command == 32 then #react to "number 2", "move cursor upwards" and "channel up" 
+				if rc5_speed_t!=0 then
+					rc5_speed_t = 0
+				else
+					rc5_speed_l = rc5_speed_l+200
+				end					
+		elseif rc5.command == 4 or rc5.command == 85 or rc5.command == 17 then #react to "number 4", "move cursor left" and "decrease volume"
+				rc5_speed_t = -200			
+		elseif rc5.command == 8 or rc5.command == 81 or rc5.command == 33 then #react to "number 8", "move cursor downward"s and "channel down"
+				if rc5_speed_t!=0 then
+					rc5_speed_t = 0
+				else
+					rc5_speed_l = rc5_speed_l-200
+				end
+		elseif rc5.command == 6 or rc5.command == 86 or rc5.command == 16 then #react to "number 6", "move cursor right" and "increase volume"
+				rc5_speed_t = 200
+		elseif rc5.command == 5 or rc5.command == 87 or rc5.command == 13 then #react to "number 5", "acknowledge" and "master mute"
+				rc5_speed_t = 0
+				rc5_speed_l = 0
+		end
+		rc5.command = 0
+	end
+
+	</node>
+
+
+</network>

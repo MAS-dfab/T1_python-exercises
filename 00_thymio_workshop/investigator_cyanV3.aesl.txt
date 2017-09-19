@@ -1,0 +1,134 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="0" name="STATE_BLACK"/>
+<constant value="1" name="STATE_WHITE"/>
+<constant value="-1" name="DIR_LEFT"/>
+<constant value="-2" name="DIR_L_LEFT"/>
+<constant value="1" name="DIR_RIGHT"/>
+<constant value="2" name="DIR_L_RIGHT"/>
+<constant value="10" name="DIR_LOST"/>
+<constant value="0" name="DIR_FRONT"/>
+<constant value="300" name="SPEED_LINE"/>
+
+
+<!--source code of node thymio-II-->
+<node name="thymio-II">var black_level = 200
+var white_level = 400
+
+var led_pulse
+var temp
+
+var s[2]
+var dir
+var speed = SPEED_LINE
+
+timer.period[0] = 25
+
+
+onevent buttons
+	when  button.center==1 do
+		if speed==0 then
+			speed=SPEED_LINE
+		else
+			speed=0
+		end
+	end
+	
+	if button.backward==1 and button.forward==1 then
+		black_level = (prox.ground.delta[0] + prox.ground.delta[1]) / 2
+		black_level = black_level+150
+	end
+	
+	if button.left==1 and button.right==1 then
+		white_level = (prox.ground.delta[0] + prox.ground.delta[1]) / 2
+		if(white_level &lt; 150) then
+			white_level = 200
+		end
+		white_level = white_level-150
+	end
+	
+	
+onevent timer0
+	#Body color pulse
+	led_pulse = led_pulse + 1
+	if led_pulse > 0 then
+		call leds.top(0, led_pulse, led_pulse)
+		if led_pulse > 40 then
+			led_pulse = -64
+		end
+	else 
+	temp=-led_pulse/2
+	call leds.top(0, temp, temp)
+	end
+
+
+onevent prox 
+	#Line Follower
+	if prox.ground.delta[0] &lt; black_level then
+		s[0] = STATE_BLACK
+	end
+	if prox.ground.delta[0] > white_level  then
+		s[0] = STATE_WHITE
+	end
+	
+	if prox.ground.delta[1] &lt; black_level then
+		s[1] = STATE_BLACK
+	end
+	if prox.ground.delta[1] > white_level then
+		s[1] = STATE_WHITE
+	end
+	
+	
+	if s[0] == STATE_BLACK and s[1] == STATE_BLACK then
+		# Black line right under us
+		dir = DIR_FRONT
+	elseif s[0] == STATE_WHITE and s[1] == STATE_BLACK then
+		dir = DIR_RIGHT
+	elseif s[1] == STATE_WHITE and s[0] == STATE_BLACK then
+		dir = DIR_LEFT
+	else 
+		# Lost
+		if dir > 0 then
+			dir = DIR_L_RIGHT
+		elseif dir &lt; 0 then
+			dir = DIR_L_LEFT
+		else
+			dir = DIR_LOST
+		end
+	end
+	
+	if dir == DIR_FRONT then
+		motor.left.target = speed
+		motor.right.target = speed
+		call leds.circle(32,0,0,0,32,0,0,0)
+	elseif dir == DIR_RIGHT then
+		motor.left.target = speed
+		motor.right.target = 0
+		call leds.circle(0,32,0,32,0,0,0,0)
+	elseif dir == DIR_LEFT then
+		motor.left.target = 0
+		motor.right.target = speed
+		call leds.circle(0,0,0,0,0,32,0,32)
+	elseif dir == DIR_L_LEFT then
+		motor.left.target = -speed
+		motor.right.target = speed
+		call leds.circle(0,0,0,0,0,0,32,0)
+	elseif dir == DIR_L_RIGHT then
+		motor.left.target = speed
+		motor.right.target = -speed
+		call leds.circle(0,0,32,0,0,0,0,0)
+	elseif dir == DIR_LOST then
+		motor.left.target = speed
+		motor.right.target = -speed
+	end
+	
+</node>
+
+
+</network>
