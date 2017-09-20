@@ -26,7 +26,7 @@ var speed = 200
 var vmin = -600
 var vmax = 600
 var led[8]
-var led_state = 0 
+var led_state = 0
 var fixed
 var led_pulse
 
@@ -34,37 +34,37 @@ var led_pulse
 timer.period[0] = 20
 
 #### Event triggered on timer 0 period (here, 20 ms)
-onevent timer0	
+onevent timer0
 	# Led ring animation
-	call math.fill(led, 0)			
-	led_state = (led_state + 2) &amp; 0xff
+	call math.fill(led, 0)
+	led_state = (led_state + 2) & 0xff
 	fixed = led_state / 32
 	led[fixed] = 32
-	led[(fixed - 1) &amp; 0x7] = 32 - (led_state &amp; 0x1F)
-	led[(fixed + 1) &amp; 0x7] = led_state &amp; 0x1F
+	led[(fixed - 1) & 0x7] = 32 - (led_state & 0x1F)
+	led[(fixed + 1) & 0x7] = led_state & 0x1F
 	call leds.circle(led[0], led[1], led[2], led[3],
 		led[4], led[5], led[6], led[7])
-	
+
 	# Body color pulse
-	led_pulse = led_pulse + 1	
+	led_pulse = led_pulse + 1
 	if led_pulse > 0 then
 		call leds.top(led_pulse, led_pulse, 0)
 		if led_pulse > 32 then
 			led_pulse = -32
 		end
-	else 
+	else
 		call leds.top(-led_pulse, -led_pulse, 0)
 	end
 
 #### Event triggered when a button is pressed
 onevent buttons
 	# Button forward is pressed, so increase speed
-	when button.forward == 1 do 		
+	when button.forward == 1 do
 		speed += 50
 		call math.min(speed, speed, 500)
 	end
 	# Button backward is pressed, so decrease speed
-	when button.backward == 1 do 
+	when button.backward == 1 do
 		speed -= 50
 		call math.max(speed, speed, -300)
 	end
@@ -76,7 +76,7 @@ onevent buttons
 	end
 
 #### Event triggered when IR sensors update (10 Hz)
-onevent prox 
+onevent prox
 	# Braitenberg obstacle avoidance
 	if speed >0 then
 		call math.dot(temp_braitenberg, prox.horizontal[0:4],
@@ -89,7 +89,7 @@ onevent prox
 			temp_braitenberg - temp_braitenberg_turn, 125)
 		motor.left.target = speed - temp_braitenberg_left
 		motor.right.target = speed - temp_braitenberg_right
-	elseif speed &lt; 0 then
+	elseif speed < 0 then
 		temp_braitenberg = -300 / speed
 		motor.left.target = speed + prox.horizontal[6] / temp_braitenberg
 		motor.right.target = speed + prox.horizontal[5] / temp_braitenberg
@@ -99,9 +99,9 @@ onevent prox
 	call math.max(motor.left.target, motor.left.target, vmin)
 	call math.min(motor.right.target, motor.right.target, vmax)
 	call math.max(motor.right.target, motor.right.target, vmin)
-	
+
 	# Table border detection
-	if prox.ground.delta[0] &lt; 130 or prox.ground.delta[1] &lt; 130 then 
+	if prox.ground.delta[0] < 130 or prox.ground.delta[1] < 130 then
 		motor.left.target = 0
 		motor.right.target = 0
 		call leds.bottom.left(32, 0, 0)

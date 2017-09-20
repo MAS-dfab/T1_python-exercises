@@ -37,7 +37,6 @@ var led_i
 var r
 var g
 var b
-var um
 
 call math.fill(leds_rainbow,0)
 for j in 0:52 do
@@ -73,7 +72,7 @@ sub rainbow
 
 
 onevent timer0
-if  time&lt;200 then
+if  time<200 then
 	time=time+1
 end
 if time>100 then
@@ -116,11 +115,11 @@ if clap==NOCLAP then
 	time = 0
 	clap = ONECLAP
 	call leds.circle(32,0,0, 0, 0, 0,0, 0)
-elseif clap==ONECLAP and 5 &lt; time and time &lt; 60 then
+elseif clap==ONECLAP and 5 < time and time < 60 then
 	clap = TWOCLAP
 	call leds.circle(32,32,0, 0, 0, 0,0, 32)
 	claptime = time + 2
-elseif clap==TWOCLAP and claptime &lt; time and time &lt; 80 then
+elseif clap==TWOCLAP and claptime < time and time < 80 then
 	clap = THREECLAP
 	call leds.circle(32,32,32, 0, 0, 0,32, 32)
 	emit test time
@@ -130,7 +129,7 @@ end
 
 onevent prox
  #Detect table border
-    if prox.ground.delta[0]&lt;130 or prox.ground.delta[1]&lt;130 then
+    if prox.ground.delta[0]<130 or prox.ground.delta[1]<130 then
             motor.left.target=0
             motor.right.target=0
         call leds.bottom.left(32,0,0)

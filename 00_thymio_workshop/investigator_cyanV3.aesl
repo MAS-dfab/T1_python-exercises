@@ -39,21 +39,21 @@ onevent buttons
 			speed=0
 		end
 	end
-	
+
 	if button.backward==1 and button.forward==1 then
 		black_level = (prox.ground.delta[0] + prox.ground.delta[1]) / 2
 		black_level = black_level+150
 	end
-	
+
 	if button.left==1 and button.right==1 then
 		white_level = (prox.ground.delta[0] + prox.ground.delta[1]) / 2
-		if(white_level &lt; 150) then
+		if(white_level < 150) then
 			white_level = 200
 		end
 		white_level = white_level-150
 	end
-	
-	
+
+
 onevent timer0
 	#Body color pulse
 	led_pulse = led_pulse + 1
@@ -62,29 +62,29 @@ onevent timer0
 		if led_pulse > 40 then
 			led_pulse = -64
 		end
-	else 
+	else
 	temp=-led_pulse/2
 	call leds.top(0, temp, temp)
 	end
 
 
-onevent prox 
+onevent prox
 	#Line Follower
-	if prox.ground.delta[0] &lt; black_level then
+	if prox.ground.delta[0] < black_level then
 		s[0] = STATE_BLACK
 	end
 	if prox.ground.delta[0] > white_level  then
 		s[0] = STATE_WHITE
 	end
-	
-	if prox.ground.delta[1] &lt; black_level then
+
+	if prox.ground.delta[1] < black_level then
 		s[1] = STATE_BLACK
 	end
 	if prox.ground.delta[1] > white_level then
 		s[1] = STATE_WHITE
 	end
-	
-	
+
+
 	if s[0] == STATE_BLACK and s[1] == STATE_BLACK then
 		# Black line right under us
 		dir = DIR_FRONT
@@ -92,17 +92,17 @@ onevent prox
 		dir = DIR_RIGHT
 	elseif s[1] == STATE_WHITE and s[0] == STATE_BLACK then
 		dir = DIR_LEFT
-	else 
+	else
 		# Lost
 		if dir > 0 then
 			dir = DIR_L_RIGHT
-		elseif dir &lt; 0 then
+		elseif dir < 0 then
 			dir = DIR_L_LEFT
 		else
 			dir = DIR_LOST
 		end
 	end
-	
+
 	if dir == DIR_FRONT then
 		motor.left.target = speed
 		motor.right.target = speed
@@ -127,7 +127,7 @@ onevent prox
 		motor.left.target = speed
 		motor.right.target = -speed
 	end
-	
+
 </node>
 
 
