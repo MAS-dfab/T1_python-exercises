@@ -7,7 +7,7 @@ def setup():
     noStroke()
     fill(0,255,0)
     frameRate(10)
-    
+
     global px,py,gs,tc,ax,ay,vx,vy,trail,tail
     px=py=10 # start position of snake
     tc = 20 # tile count
@@ -16,7 +16,7 @@ def setup():
     vx=vy=0 # velocity x / y
     trail=[] # list of dicts of past positions
     tail=5 # initial minimal tail length
-    
+
 def draw():
     global px,py,gs,tc,ax,ay,vx,vy,trail,tail
     # move snake
@@ -31,7 +31,7 @@ def draw():
         py=tc-1
     if py>tc-1:
         py=0
-        
+
     background(0)
     # draw snake
     fill(0,255,0)
@@ -39,21 +39,23 @@ def draw():
         rect(e['x']*gs,e['y']*gs,gs-2,gs-2)
         # check self intersection
         if e['x']==px and e['y']==py:
+            #print('YOU BITE YOURSELF! Restart...')
             tail = 5
     # add current position to trail
     trail.append({'x':px,'y':py})
     while len(trail)>tail:
         trail.pop(0)
-        
+
     # check if apple found
     if ax==px and ay==py:
         tail+=1
+        print('current score: '+str(tail-5))
         # generate next random apple pos
         ax = floor(random(tc))
         ay = floor(random(tc))
     fill(255,0,0)
     rect(ax*gs,ay*gs,gs-2,gs-2)
-    
+
 def keyPressed():
     # move snake with arrow keys
     global vx,vy
@@ -72,6 +74,3 @@ def keyPressed():
             vy= 0
         else:
             pass
-    
-    
-    
