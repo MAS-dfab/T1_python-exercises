@@ -145,3 +145,20 @@ def sleep(time):
     """
     script = "sleep(%s) \n" %(time)
     return script
+
+def set_digital_out(id, signal):
+    """
+    Function that returns UR script for setting digital out
+    
+    Args:
+        id: int. Input id number
+        signal: boolean. signal level - on or off
+    
+    Returns:
+        script: UR script
+    """
+    
+    # Format UR script
+    script = "set_digital_out(%s,%s)\n"%(id,signal)
+    return script
+
