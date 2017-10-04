@@ -15,19 +15,19 @@ import random as r
 import rhinoscriptsyntax as rs
 import Rhino.Geometry as rg
 
-ROBOT_IP = 'xxx.xxx.xx.xx'
+ROBOT_IP = '.xxx.xx.xx'
 
 
 #how to move the robot to a vertical position
-def move_robot_vertical():
+def move_robot_vertical(move_to):
     script = ""
     script += ur.set_tcp_by_angles(0.0,0.0,0.0,m.radians(0.0),m.radians(180.0),m.radians(0))
 
-    velocity = 0.01
-    acceleration = 0.01
+    velocity = 0.05
+    acceleration = 0.02
     robot_ip = ROBOT_IP
 
-    plane = rg.Plane(rg.Point3d(-400.0,0.0,-200.0),rg.Vector3d.ZAxis)
+    plane = rg.Plane(move_to,rg.Vector3d.ZAxis)
     script += ur.move_l(plane,acceleration,velocity)
 
     script = c.concatenate_script(script)
@@ -42,7 +42,7 @@ def get_robot_position():
 #how to set a base plane
 def set_robot_base_plane():
     robot_ip = ROBOT_IP
-    robot_ip = "192.168.10.43"
+    #robot_ip = "192.168.10.43"
 
     rs.MessageBox("move robot to base plane origin, press OK when there",0)
     data = c.listen_to_robot(robot_ip)
@@ -81,7 +81,7 @@ def load_robot_base_plane():
 
 #how to transform rhino to robot base coordinates
 def rhino_to_robot_space(_plane,_robot_base):
-    _r_matrix = rg.Transform.PlaneToPlane(rg.Plane.WorldXY,robot_base)
+    _r_matrix = rg.Transform.PlaneToPlane(rg.Plane.WorldXY,_robot_base)
     _plane.Transform(_r_matrix)
     return _plane
 
