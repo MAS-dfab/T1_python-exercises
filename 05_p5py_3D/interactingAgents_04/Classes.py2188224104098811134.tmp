@@ -1,0 +1,331 @@
+class Grid:
+    def __init__(self, s, c):
+        self.s = s
+        self.c = c
+        
+    def display(self):
+        strokeWeight(0.5)
+        stroke(self.c)
+        for x in range(-self.s/2, self.s/2, 10):
+            line(x, -self.s/2, 0, x, self.s/2, 0)
+            line(-self.s/2, x, 0, self.s/2, x, 0)
+
+class Flock:
+    def __init__(self, boids):
+        self.boids = boids
+    
+    def run(self, Alignment, Separation, Cohesion):
+        for b in self.boids:
+            b.run(self.boids, Alignment, Separation, Cohesion)
+    
+    def addBoid(self, boid):
+        self.boids.append(boid)
+        return self.boids
+
+class Boid:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+        
+        self.loc = PVector(self.x, self.y, self.z)
+        self.acc = PVector(0, 0, 0)
+        self.vel = PVector(random(-1, 1), random(-1, 1), random(-1, 1))
+        global r
+        r = 3.0
+        self.maxspeed = 3
+        maxforce = 0.05
+        
+    def run(self, boids, Alignment, Separation, Cohesion):
+        self.flock(boids, Alignment, Separation, Cohesion)
+        self.update()
+        self.borders()
+        self.render()
+    
+    def flock(self, boids, Alignment, Separation, Cohesion):
+        sep = self.separate(boids)
+        #ali = self.align(boids)
+        #coh = self.cohesion(boids)
+
+        #sep.mult(0.01 * Separation)
+        #ali.mult(0.01 * Alignment)
+        #coh.mult(0.01 * Cohesion)
+        
+        #self.applyForce(sep)
+        #self.applyForce(ali)
+        #self.applyForce(coh)
+    
+    def applyForce(self, f):
+        self.acc.add(f)
+    
+    def separate(self, boids):
+        desiredseparation = r*2
+        count = 0
+        sum = PVector(0, 0, 0)
+        for other in boids:
+            d = PVector.dist(self.loc, other.loc)
+            if ((d > 0) and (d < desiredseparation)):
+                diff = PVector.sub(self.loc, other.loc)
+                diff.normalize()
+                diff.div(d)
+                print(diff)
+                sum.add(diff)
+                count += count
+        if (count > 0):
+            sum.div(count)
+            sum.normalize()
+            sum.mult(maxspeed)
+            sum.sub(vel)
+            sum.limit(maxforce)
+        return sum
+    
+    def align(self, boids):
+        neighbordist = 50
+        sum = PVector(0, 0, 0)
+        count = 0
+        for other in boids:
+            d = PVector.dist(self.loc, other.loc)
+            if ((d > 0) and (d < neighbordist)):
+                sum.add(other.vel)
+                count += count
+        if (count > 0):
+            sum.div(count)
+            sum.normalize()
+            sum.mult(maxspeed)
+            steer = PVector.sub(sum, vel)
+            steer.limit(maxforce)
+            return steer
+        else:
+            return PVector(0, 0, 0)
+    
+    def cohesion(self, boids):
+        neighbordist = 50
+        sum = PVector(0, 0, 0)
+        count = 0
+        for other in boids:
+            d = PVector.dist(self.loc, other.loc)
+            if((d > 0) and (d < neighbordist)):
+                sum.add(other.loc)
+                count += count
+        if (count > 0):
+            sum.div(count)
+            return seek(sum)
+        else:
+            return PVector(0, 0, 0)
+        
+    def seek(self, target):
+        desired = PVector.sub(target, loc)
+        desired.normalize()
+        desired.mult(maxspeed)
+        steer = PVector.sub(desired, vel)
+        steer.limit(maxforce)
+        return steer
+    
+    def update(self):
+        self.vel.add(self.acc)
+        self.vel.limit(self.maxspeed)
+        self.loc.add(self.vel)
+        self.acc.mult(0)
+    
+    def render(self):
+        theta = self.vel.heading2D() + radians(90)
+        fill(255)
+        noStroke()
+        pushMatrix()
+        translate(self.loc.x, self.loc.y, self.loc.z)
+        rotate(theta)
+        beginShape(TRIANGLES)
+        vertex(0, -r*2)
+        vertex(-r, r*2)
+        vertex(r, r*2)
+        endShape()
+        popMatrix()
+    
+    def borders(self):
+        bound = 1500
+        if (self.loc.x < -r): self.loc.x = bound+r
+        if (self.loc.y < -r): self.loc.y = bound+r
+        if (self.loc.z < -r): self.loc.z = bound+r
+        
+        if (self.loc.x > bound+r): self.loc.x = -r
+        if (self.loc.y > bound+r): self.loc.y = -r
+        if (self.loc.z > bound+r): self.loc.z = -r
+        
+
+
+
+
+'''
+class Flock {
+  ArrayList<Boid> boids;
+
+  Flock() {
+    boids = new ArrayList<Boid>();
+  }
+
+  void run() {
+    for (Boid b : boids) {
+      b.run(boids);
+    }
+  }
+
+  void addBoid(Boid b) {
+    boids.add(b);
+  }
+}
+
+class Boid {
+  PVector loc;
+  PVector vel;
+  PVector acc;
+  float r;
+  float maxspeed;
+  float maxforce;
+  float col;
+
+  Boid(float x, float y, float c) {
+    loc = new PVector(x, y);
+    r = 3.0;
+    col = c;
+    maxspeed = 3;
+    maxforce = 0.05;
+    acc = new PVector(0, 0);
+    vel = new PVector(random(-1, 1), random(-1, 1));
+  }
+
+  void run(ArrayList<Boid> boids) {
+      flock(boids);
+      update();
+      borders();
+      render();
+    }
+
+  void flock(ArrayList<Boid> boids) {
+    PVector sep = separate(boids);
+    PVector ali = align(boids);
+    PVector coh = cohesion(boids);
+
+    
+
+    sep.mult(0.01 * Separation);
+    ali.mult(0.01 * Alignment);
+    coh.mult(0.01 * Cohesion);
+
+    applyForce(sep);
+    applyForce(ali);
+    applyForce(coh);
+  }
+
+  void applyForce(PVector f) {
+    acc.add(f);
+  }
+
+  PVector separate (ArrayList<Boid> boids) {
+    float desiredseparation = r*2;
+    PVector sum = new PVector();
+    int count = 0;
+
+    for (Boid other : boids) {
+      float d = PVector.dist(loc, other.loc);
+      if ((d > 0) && (d < desiredseparation)) {
+        PVector diff = PVector.sub(loc, other.loc);
+        diff.normalize();
+        diff.div(d);  //weight PVector by distance (divide by d)
+        sum.add(diff);
+        count++;
+      }
+    }
+
+    // average, divide boy how many
+    if (count > 0) {
+      sum.div(count);
+      sum.normalize();
+      sum.mult(maxspeed);
+
+      sum.sub(vel);
+      sum.limit(maxforce);
+    }
+    return sum;
+  }
+
+  PVector align (ArrayList<Boid> boids) {
+    float neighbordist = 50;
+    PVector sum = new PVector(0, 0);
+    int count = 0;
+    for (Boid other : boids) {
+      float d = PVector.dist(loc, other.loc);
+      if ((d > 0) && (d < neighbordist)) {
+        sum.add(other.vel);
+        count++;
+      }
+    }
+    if (count > 0) {
+      sum.div(count);
+      sum.normalize();
+      sum.mult(maxspeed);
+      PVector steer = PVector.sub(sum, vel);
+      steer.limit(maxforce);
+      return steer;
+    }  else {
+      return new PVector(0, 0);
+    }
+  }
+
+  PVector cohesion (ArrayList<Boid> boids) {
+    float neighbordist = 50;
+    PVector sum = new PVector(0, 0);
+    int count = 0;
+    for (Boid other : boids) {
+      float d = PVector.dist(loc, other.loc);
+      if ((d > 0) && (d < neighbordist)) {
+        sum.add(other.loc);
+        count++;
+      }
+    }
+    if (count > 0) {
+      sum.div(count);
+      return seek(sum);
+    }  else {
+      return new PVector(0, 0);
+    }
+  }
+
+  PVector seek(PVector target) {
+    PVector desired = PVector.sub(target, loc);
+    desired.normalize();
+    desired.mult(maxspeed);
+    PVector steer = PVector.sub(desired, vel);
+    steer.limit(maxforce);
+    return steer;
+  }
+
+  void update() {
+    vel.add(acc);
+    vel.limit(maxspeed);
+    loc.add(vel);
+    acc.mult(0);
+  }
+
+  void render() {
+    float theta = vel.heading2D() + radians(90);
+    fill(col);
+    noStroke();
+    pushMatrix();
+    translate(loc.x, loc.y);
+    rotate(theta);
+    beginShape(TRIANGLES);
+    vertex(0, -r*2);
+    vertex(-r, r*2);
+    vertex(r, r*2);
+    endShape();
+    popMatrix();
+  }
+
+  void borders() {
+      if (loc.x < -r) loc.x = width+r;
+      if (loc.y < -r) loc.y = height+r;
+      if (loc.x > width+r) loc.x = -r;
+      if (loc.y > height+r) loc.y = -r;
+    }
+}
+'''
