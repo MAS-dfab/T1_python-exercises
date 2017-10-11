@@ -54,7 +54,7 @@ class Mesh():
         newFaces = []
         for f in self.faces:
             if f.type=='land':
-                newFaces.extend(f.sd_grid(4,7))
+                newFaces.extend(f.sd_grid(5,6))
             elif f.type=='plot':
                 newFaces.extend(f.sd_window(0.2,True))
             elif f.type=='circulation':
@@ -107,10 +107,9 @@ class Mesh():
                 bottom = PVector.sub(f.nodes[1],f.nodes[0])
                 edgelength = bottom.mag()
                 num = int(floor(edgelength/3))
-                print num
                 fcs = f.sd_grid(num,1)
                 for ft in fcs:
-                    ft.type == 'room'
+                    ft.type = 'room'
                 newFaces.extend(fcs)
                 
             else:
@@ -144,6 +143,8 @@ class Mesh():
                 fill(0,255,255)
             elif (f.type == 'roof'):
                 fill(130,0,0)
+            elif (f.type == 'room'):
+                fill(130,130,0)
             
             else:
                 fill(255)
