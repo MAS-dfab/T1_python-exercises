@@ -54,9 +54,20 @@ class Mesh():
         newFaces = []
         for f in self.faces:
             if f.type=='land':
-                newFaces.extend(f.sd_grid(5,6))
+                fcs = f.sd_grid(5,6,True)
+                for ft in fcs:
+                    ft.type = 'plot'
+                newFaces.extend(fcs)
             elif f.type=='plot':
-                newFaces.extend(f.sd_window(0.2,True))
+                fcs = f.sd_window(0.2,True)
+                for ft in fcs:
+                    ft.type = 'circulation'
+                fc = fcs[-1]
+                if random(1)>0.2:
+                    fc.type = 'construction'
+                else:
+                    fc.type = 'park'
+                newFaces.extend(fcs)
             elif f.type=='circulation':
                 fcs = f.sd_grid(1,2)
                 fcs[0].type = 'street'
@@ -244,16 +255,10 @@ class Face():
             nds.append(self.nodes[nextIndex])
             nds.append(newNodes[nextIndex])
             nds.append(newNodes[i])
-            f=Face(nds)
-            f.type = 'circulation'
-            newFaces.append(f)
+            newFaces.append(Face(nds))
             
         if cap:
             f = Face(newNodes)
-            if random(1)>0.2:
-                f.type = 'construction'
-            else:
-                f.type = 'park'
             newFaces.append(f)
             
         return newFaces
@@ -317,7 +322,7 @@ class Face():
             newFaces.append(self)
         return newFaces
     
-    def sd_grid(self,u,v):
+    def sd_grid(self,u,v,distort=False):
         if len(self.nodes)!=4:
             print 'grid not possible'
             return self
@@ -355,6 +360,8 @@ class Face():
             temp.append(b)
             for j in range(1,v):
                 n = PVector.add(b,PVector.mult(vert,j*1.0/v))
+                if distort:
+                    n.add(PVector.mult(PVector.random2D(),5))
                 temp.append(Node(n.x,n.y,n.z))
             temp.append(t)
             new_nodes.append(temp)
@@ -367,10 +374,7 @@ class Face():
                 nds.append(new_nodes[j+1][i])
                 nds.append(new_nodes[j+1][i+1])
                 nds.append(new_nodes[j][i+1])
-                f = Face(nds)
-                if self.type=='land':
-                    f.type='plot'
-                new_faces.append(f)
+                new_faces.append(Face(nds))
         return new_faces
 
     def f_normal(self):
