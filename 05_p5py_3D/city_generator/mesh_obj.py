@@ -54,7 +54,7 @@ class Mesh():
         newFaces = []
         for f in self.faces:
             if f.type=='land':
-                newFaces.extend(f.sd_grid(5,6))
+                newFaces.extend(f.sd_grid(4,7))
             elif f.type=='plot':
                 newFaces.extend(f.sd_window(0.2,True))
             elif f.type=='circulation':
@@ -71,14 +71,47 @@ class Mesh():
                 if random(1)>0.5:
                     # perimeter block
                     for fp in footprints:
-                        fp.type = 'footprint'
+                        fp.type = 'perimeter'
                     footprints[4].type = 'courtyard'
                 else:
                     # highrise
                     for fp in footprints:
                         fp.type = 'courtyard'
-                    footprints[4].type = 'footprint'
+                    footprints[4].type = 'highrise'
                 newFaces.extend(footprints)
+            elif f.type=='highrise':
+                stories = []
+                face_to_extrude = f
+                for i in range(10):
+                    fs = face_to_extrude.sd_extrude(4,True,False)
+                    for ft in fs:
+                        ft.type = 'facade'
+                    fs[-1].type = 'floor'
+                    face_to_extrude = fs[-1]
+                    stories.extend(fs)
+                face_to_extrude.type = 'roof'
+                newFaces.extend(stories)
+            elif f.type=='perimeter':
+                stories = []
+                face_to_extrude = f
+                for i in range(4):
+                    fs = face_to_extrude.sd_extrude(4,True,False)
+                    for ft in fs:
+                        ft.type = 'facade'
+                    fs[-1].type = 'floor'
+                    face_to_extrude = fs[-1]
+                    stories.extend(fs)
+                face_to_extrude.type = 'roof'
+                newFaces.extend(stories)
+            elif f.type == 'facade':
+                bottom = PVector.sub(f.nodes[1],f.nodes[0])
+                edgelength = bottom.mag()
+                num = int(floor(edgelength/3))
+                print num
+                fcs = f.sd_grid(num,1)
+                for ft in fcs:
+                    ft.type == 'room'
+                newFaces.extend(fcs)
                 
             else:
                 newFaces.append(f)
@@ -107,8 +140,10 @@ class Mesh():
                 fill(0,255,0)
             elif (f.type == 'courtyard'):
                 fill(255,255,0)
-            elif (f.type == 'footprint'):
+            elif (f.type == 'highrise' or f.type == 'perimeter'):
                 fill(0,255,255)
+            elif (f.type == 'roof'):
+                fill(130,0,0)
             
             else:
                 fill(255)
