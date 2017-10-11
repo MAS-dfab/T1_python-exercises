@@ -49,14 +49,70 @@ class Mesh():
             m.add_face(f)
         
         return m
+    
+    def city_subdivide(self):
+        newFaces = []
+        for f in self.faces:
+            if f.type=='land':
+                newFaces.extend(f.sd_grid(5,6))
+            elif f.type=='plot':
+                newFaces.extend(f.sd_window(0.2,True))
+            elif f.type=='circulation':
+                fcs = f.sd_grid(1,2)
+                fcs[0].type = 'street'
+                fcs[1].type = 'sidewalk'
+                swf = fcs[1].sd_extrude(0.5,True,False)
+                for sf in swf:
+                    sf.type = 'sidewalk'
+                newFaces.extend(fcs)
+                newFaces.extend(swf)
+            elif f.type=='construction':
+                footprints = f.sd_grid(3,3)
+                if random(1)>0.5:
+                    # perimeter block
+                    for fp in footprints:
+                        fp.type = 'footprint'
+                    footprints[4].type = 'courtyard'
+                else:
+                    # highrise
+                    for fp in footprints:
+                        fp.type = 'courtyard'
+                    footprints[4].type = 'footprint'
+                newFaces.extend(footprints)
+                
+            else:
+                newFaces.append(f)
+        m=Mesh()
+        for f in newFaces:
+            m.add_face(f)
+        
+        return m
         
     def display(self):
         
         for f in self.faces:
-            if (len(f.nodes)<4):
-                fill(255)
+            if (f.type=='land'):
+                fill(120)
+            elif (f.type=='plot'):
+                fill(255,0,128)
+            elif (f.type == 'circulation'):
+                fill(128,0,255)
+            elif (f.type == 'park'):
+                fill(0,255,128)
+            elif (f.type == 'construction'):
+                fill(0,128,255)
+            elif (f.type == 'sidewalk'):
+                fill(255,0,0)
+            elif (f.type == 'street'):
+                fill(0,255,0)
+            elif (f.type == 'courtyard'):
+                fill(255,255,0)
+            elif (f.type == 'footprint'):
+                fill(0,255,255)
+            
             else:
                 fill(255)
+                
             beginShape()
             for n in f.nodes:
                 vertex(n.x,n.y,n.z)
@@ -109,6 +165,7 @@ class Face():
     
     def __init__(self,nodes=[]):
         self.nodes=nodes
+        self.type = 'land'
         
     def sd_pyramid(self, ampl_v):
         
@@ -131,7 +188,7 @@ class Face():
         
         return newFaces
       
-    def sd_window( self, d, cap=False):
+    def sd_window( self, d, cap=True):
         
         c = self.f_center()
         
@@ -152,10 +209,16 @@ class Face():
             nds.append(newNodes[nextIndex])
             nds.append(newNodes[i])
             f=Face(nds)
+            f.type = 'circulation'
             newFaces.append(f)
             
         if cap:
-            newFaces.append(Face(newNodes))
+            f = Face(newNodes)
+            if random(1)>0.2:
+                f.type = 'construction'
+            else:
+                f.type = 'park'
+            newFaces.append(f)
             
         return newFaces
     
@@ -269,6 +332,8 @@ class Face():
                 nds.append(new_nodes[j+1][i+1])
                 nds.append(new_nodes[j][i+1])
                 f = Face(nds)
+                if self.type=='land':
+                    f.type='plot'
                 new_faces.append(f)
         return new_faces
 

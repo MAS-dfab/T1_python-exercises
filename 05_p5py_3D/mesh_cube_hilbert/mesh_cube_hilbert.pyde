@@ -4,12 +4,13 @@ from mesh_obj import Face, Mesh, Node
 def setup():
     size(800,800,P3D)
     cam=PeasyCam(this, 400)
+    noStroke()
     
     global faces, myMesh
     
     faces=[]
     
-    d=100
+    d=90
     d=d/2
     
     v0=Node(-d,-d,-d)
@@ -32,25 +33,25 @@ def setup():
     for f in faces:
         myMesh.add_face(f)
         
-    #myMesh = myMesh.subdiv_w(0.5)
-    myMesh = myMesh.subdiv_g(2,3)
-    myMesh = myMesh.subdiv_t(0.5,20)
-    myMesh = myMesh.subdiv_t(0.3,5)
+    myMesh = hilbert_3d(myMesh,2)
         
-    #myMesh = myMesh.subdiv_p(100)
+    #myMesh = myMesh.subdiv_w(0.5)
+    # myMesh = myMesh.subdiv_g(2,3)
+    # myMesh = myMesh.subdiv_t(0.5,20)
+    # myMesh = myMesh.subdiv_t(0.3,5)
+        
+    # for i in range(1,3):
+    #     myMesh = myMesh.subdiv_p(50/float(i))
     #myMesh = myMesh.subdiv_p(50)
     
 def draw():
-    background(120)
-    global myMesh
-    directionalLight(155,0,120,1,0,0)
-    directionalLight(255,0,120,-1,0,0)
-    
-    directionalLight(0,155,120,0,1,0)
-    directionalLight(0,255,120,0,-1,0)
-    
-    directionalLight(0,0,155,0,0,1)
-    directionalLight(0,0,255,0,0,-1)
+    background(77)
+    directionalLight(255,128,0,1,0,0)
+    directionalLight(0,255,128,0,1,0)
+    directionalLight(128,0,255,0,0,1)
+    directionalLight(255,0,128,-1,0,0)
+    directionalLight(128,255,0,0,-1,0)
+    directionalLight(0,128,255,0,0,-1)
     myMesh.display()
     
 def keyPressed():
@@ -78,3 +79,20 @@ def import_obj(path):
     print len(mesh.nodes),len(mesh.faces)
         
     return mesh
+
+def hilbert_3d(m, i):
+    if m.faces[0].generation>i:
+        return m
+    else:
+        tm = Mesh()
+        for f in m.faces:
+            gridfaces = f.sd_grid(3,3)
+            tf = gridfaces[4]
+            extrudes = tf.sd_tapered(0.25,-90 / pow(3,tf.generation),True)
+            gridfaces.pop(4)
+            for ef in extrudes:
+                ef.generation -= 1
+            gridfaces.extend(extrudes)
+            tm.faces.extend(gridfaces)
+        
+        return hilbert_3d(tm,i)

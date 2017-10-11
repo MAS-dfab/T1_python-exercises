@@ -109,6 +109,8 @@ class Face():
     
     def __init__(self,nodes=[]):
         self.nodes=nodes
+        self.generation = 0
+        self.parent = None
         
     def sd_pyramid(self, ampl_v):
         
@@ -127,6 +129,8 @@ class Face():
             nds.append(self.nodes[nextIndex])
             nds.append(c)
             f = Face(nds)
+            f.generation = self.generation + 1
+            f.parent = self
             newFaces.append(f)
         
         return newFaces
@@ -152,6 +156,8 @@ class Face():
             nds.append(newNodes[nextIndex])
             nds.append(newNodes[i])
             f=Face(nds)
+            f.generation = self.generation + 1
+            f.parent = self
             newFaces.append(f)
             
         if cap:
@@ -183,10 +189,16 @@ class Face():
             nds.append(newNodes[nextIndex])
             nds.append(newNodes[i])
             f=Face(nds)
+            f.generation = self.generation + 1
+            f.parent = self
             newFaces.append(f)
             
         if cap:
-            newFaces.append(Face(newNodes))
+            fc = Face(newNodes)
+            fc.generation = self.generation + 1
+            fc.parent = self
+
+            newFaces.append(fc)
             
         return newFaces
     
@@ -210,12 +222,21 @@ class Face():
             nds.append(newNodes[ni])
             nds.append(newNodes[i])
             f = Face(nds)
+            f.generation = self.generation + 1
+            f.parent = self
+
             newFaces.append(f)
         if captop:
-            newFaces.append(Face(newNodes))
+            ft = Face(newNodes)
+            ft.generation = self.generation + 1
+            ft.parent = self
+            newFaces.append(ft)
         if capbottom:
-            self.flip()
-            newFaces.append(self)
+            fb = Face(self.nodes)
+            fb.generation = self.generation + 1
+            fb.parent = self
+            fb.flip()
+            newFaces.append(fb)
         return newFaces
     
     def sd_grid(self,u,v):
@@ -269,6 +290,8 @@ class Face():
                 nds.append(new_nodes[j+1][i+1])
                 nds.append(new_nodes[j][i+1])
                 f = Face(nds)
+                f.generation = self.generation + 1
+                f.parent = self
                 new_faces.append(f)
         return new_faces
 
@@ -280,13 +303,13 @@ class Face():
         return n   
         
     def f_center(self):
-        cx=0
-        for n in self.nodes:
-            cx+=n.x
-        cx=cx/len(self.nodes)
+        # cx=0
+        # for n in self.nodes:
+        #     cx+=n.x
+        # cx=cx/len(self.nodes)
         
+        cx = sum([n.x for n in self.nodes])/len(self.nodes)
         cy = sum([n.y for n in self.nodes])/len(self.nodes)
-        
         cz = sum([n.z for n in self.nodes])/len(self.nodes)
         
         return Node(cx,cy,cz)
