@@ -6,7 +6,7 @@ def setup():
     cam = PeasyCam(this,500)
     noStroke()
     
-    global dx,dy,dz
+    global dx,dy,dz,vs
     dx = 500.0
     dy = 400.0
     dz = 300.0
@@ -16,37 +16,14 @@ def setup():
     vs.setValueToAll(10000)
     vd = VoxelDistance(vs)
     
-    vb = VBox(-200,-150,-100,200,150,100)
-    vd.addVol(vb,b)
-    
-    t = Torus(-200,-150,0,150,40)
-    vd.subVol(t,b)
-    
-    c = Cylinder(-100,250,0,-120,0,0,30)
-    vd.subVol(c,b)
-    
-    bx = VBox(80,100,-50, 180,200,50, 20)
-    vd.subVol(bx,b)
-    
-    vs.makeShell(10,1)
-    
-    for i in range(60):
-        x = random(-160,160)
-        y = random(-120,120)
-        v = PVector.random2D()
-        v.mult(random(0,20))
-        xt = x + v.x
-        yt = y + v.y
-        cl = Cylinder(x,y,-90,xt,yt,90,5)
-        vd.addSmooth(cl,b,30)
-        
-    vd.subVol(t,b)
-    vd.subVol(c,b)
-    vd.subVol(bx,b)
-    vd.intVol(vb,b)
-    
-    cut = VBox(-dx/2,-dy/2,20,dx/2,dy/2,dz/2)
-    vd.subVol(cut,b)
+    p = Pipe()
+    p.addControlPoint(-200,-100,0)
+    p.addControlPoint( 200,-100,80)
+    p.addControlPoint(-200, 100,-80)
+    p.addControlPoint( 200, 100,0)
+    p.startRad = 10
+    p.endRad = 20
+    vd.addVol(p,b)
     
     global shp
     shp = vs.getPShape(this,0.0)
@@ -67,6 +44,22 @@ def draw():
     stroke(255)
     box(dx,dy,dz)
     box(5)
+    
+def keyPressed():
+    if key=='e':
+        vs.saveMCube(0,sketchPath()+"/"+get_time_stamp()+".obj")
+        
+def get_time_stamp():
+    s = str(year())+str(month())+str(day())+str(hour())+str(minute())+str(second())
+    return s
+        
+        
+        
+        
+        
+        
+        
+        
     
     
     
