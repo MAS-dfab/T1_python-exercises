@@ -8,5 +8,6 @@
   * iso slider
   * gaussian blur
 * vs_05: platonic solids (dodecahedron, icosahedron, ...)
-* vs_06: schwarz minimal surface
+* vs_06: spatial lattice structure, schwarz minimal surface
 * vs_07: gyroid minimal surface
+* vs_08: extrude tube along path (list of points)
