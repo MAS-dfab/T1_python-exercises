@@ -6,21 +6,21 @@ def setup():
     cam = PeasyCam(this,500)
     noStroke()
     
+    global vs, s1, s2, b
     dx = 600.0
     dy = 400.0
     dz = 300.0
     b = Box(-dx/2,-dy/2,-dz/2,dx/2,dy/2,dz/2)
     vs = VoxelSpace()
-    vs.construct(b,6.0)
+    vs.construct(b,5.0)
     vs.setValueToAll(1000)
     
-    vd = VoxelDistance(vs)
+    #vd = VoxelDistance(vs)
     
     s1 = Sphere(0,0,0,140)
-    vd.addVol(s1,b)
+    #vd.addVol(s1,b)
     
-    global shp
-    shp = vs.getPShape(this,0.0)
+    #shp = vs.getPShape(this,0.0)
     
 def draw():
     background(77)
@@ -30,6 +30,13 @@ def draw():
     directionalLight(255,  0,127,-1, 0, 0)
     directionalLight(127,255,  0, 0,-1, 0)
     directionalLight(  0,127,255, 0, 0,-1)
+    
+    vs.setValueToAll(1000)
+    vd = VoxelDistance(vs)
+    vd.addVol(s1,b)
+    s2 = Sphere(sin(frameCount/50.0)*200,0,60,90)
+    vd.addVol(s2,b)
+    shp = vs.getPShape(this,0.0)
     
     shape(shp)
     
