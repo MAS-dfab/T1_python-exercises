@@ -188,15 +188,29 @@ class Mesh():
         for n in self.nodes:
             out.println('v '+str(n.x)+' '+str(n.y)+' '+str(n.z))
             
+        groups = {}
         for f in self.faces:
-            index_list = [str(n.index) for n in f.nodes]
+            if f.type in groups:
+                groups[f.type].append(f)
+            else:
+                groups[f.type] = [f]
+                
+        for k in groups:
+            print k
+            out.println('g '+k)
+            for gf in groups[k]:
+                index_list = [str(n.index) for n in gf.nodes]
+                out.println('f '+' '.join(index_list))
+            
+        #for f in self.faces:
+        #    index_list = [str(n.index) for n in f.nodes]
             
             # long version
             #index_list = []
             #for n in f.nodes:
             #    index_list.append(n.index)
             
-            out.println('f '+' '.join(index_list))
+         #   out.println('f '+' '.join(index_list))
         
         out.flush()
         out.close()

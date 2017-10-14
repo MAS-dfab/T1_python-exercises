@@ -6,7 +6,7 @@ def setup():
     cam = PeasyCam(this,500)
     noStroke()
     
-    global dx,dy,dz
+    global dx,dy,dz, vs
     dx = 500.0
     dy = 300.0
     dz = 300.0
@@ -48,3 +48,12 @@ def draw():
     noFill()
     stroke(255)
     box(dx,dy,dz)
+
+def keyPressed():
+    global vs
+    if key=='e':
+        vs.saveMCube(0,sketchPath()+"/"+get_time_stamp()+".obj")
+        
+def get_time_stamp():
+    s = str(year())+str(month())+str(day())+str(hour())+str(minute())+str(second())
+    return s

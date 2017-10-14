@@ -29,16 +29,13 @@ def setup():
             for z in range(vs.nZ):
                 # random perlin noise
                 # returns a number between 0 and 1
-                # subtract 0.5 for half full / half empty
-                # subtract 0.4 for sparse structure
-                # subtract 0.6 for dense structure
                 # often used for terrain generation in computer games
                 v = noise(x/15.0,y/15.0,z/15.0)
                 vs.set(x,y,z,v)
 
     # apply a gaussian blur to the entire voxelspace
     # second number is radius      
-    VoxelBlur.blur(vs,5)
+    VoxelBlur.blur(vs,6)
     
     # set all the border planes to 1, to close        
     vs.setValueXPlane(0,1)
