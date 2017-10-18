@@ -22,6 +22,7 @@ def setup():
                     cp = p
             #pic.set(x,y,color(min_dist,255,255))
             pic.set(x,y,color(cp.z,255,255))
+            
     pic.loadPixels()                
     
 def draw():
