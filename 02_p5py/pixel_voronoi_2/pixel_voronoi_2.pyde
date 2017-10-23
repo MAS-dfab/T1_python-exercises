@@ -28,12 +28,13 @@ def setup():
             #pic.set(x,y,color(cp.z,255,255))
             
     vals = [-1 for i in range(width*height)]
+    r = 1
     for x in range(width):
         for y in range(height):
             same = True
             v = pixel_space[y*width+x][0]
-            for dx in range(-1,1):
-                for dy in range(-1,1):
+            for dx in range(-r,r+1):
+                for dy in range(-r,r+1):
                     if x+dx>0 and x+dx<width and y+dy>0 and y+dy<height:
                         if pixel_space[(y+dy)*width+(x+dx)][0] != v:
                             same = False
