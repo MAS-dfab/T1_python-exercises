@@ -1,0 +1,11 @@
+- copy _static to static
+- copy _images to images
+- refer to js by /core/static/js
+- refer to css by /core/static/css
+- refer to images by /core/static/images
+- postprocess image paths
+- postprocess links?
+- copy examples into source/examples
+- videos?
+- downloads?
+- postprocess?
