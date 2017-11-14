@@ -53,6 +53,8 @@ def keyPressed():
     global vs
     if key=='e':
         vs.saveMCube(0,sketchPath()+"/"+get_time_stamp()+".obj")
+    if key=='s':
+        vs.saveValues(sketchPath()+"/"+get_time_stamp()+".txt")
         
 def get_time_stamp():
     s = str(year())+str(month())+str(day())+str(hour())+str(minute())+str(second())

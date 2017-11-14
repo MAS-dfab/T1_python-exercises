@@ -6,7 +6,7 @@ def setup():
     cam = PeasyCam(this,500)
     noStroke()
     
-    global dx,dy,dz
+    global dx,dy,dz, vs
     dx = 500.0
     dy = 400.0
     dz = 300.0
@@ -24,7 +24,8 @@ def setup():
                 # https://en.wikipedia.org/wiki/Gyroid
                 v = sin(x/5.0)*cos(y/5.0) + sin(y/5.0)*cos(z/5.0) + sin(z/5.0)*cos(x/5.0)
                 # make shell
-                v = abs(v)-0.25
+                #v = abs(v)-0.25
+                v += 1
                 vs.set(x,y,z,v)
     
     # set all the border planes to 1, to close        
@@ -53,3 +54,11 @@ def draw():
     noFill()
     stroke(255)
     box(dx,dy,dz)
+    
+def keyPressed():
+    if key=='e':
+        vs.saveMCube(0,sketchPath()+"/"+get_time_stamp()+".obj")
+        
+def get_time_stamp():
+    s = str(year())+str(month())+str(day())+str(hour())+str(minute())+str(second())
+    return s
