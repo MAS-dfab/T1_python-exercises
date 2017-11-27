@@ -14,14 +14,14 @@ def setup():
     bx = Box(-hd,-hd,-hd,hd,hd,hd)
     
     vs = VoxelSpace()
-    vs.construct(bx,1)
+    vs.construct(bx,0.5)
     vs.setValueToAll(10000)
     vd = VoxelDistance(vs)
-    vd.addVol(Cylinder(0,0,-45,0,0,45,45),bx)
-    vd.subVol(Sphere(0,50,50,60),bx)
+    vd.addVol(Cylinder(0,0,-60,0,0,60,30),bx)
+    #vd.subVol(Sphere(0,50,50,60),bx)
     
     vs2 = VoxelSpace()
-    vs2.construct(bx,1)
+    vs2.construct(bx,0.5)
     vs2.setValueToAll(10000)
     vd2 = VoxelDistance(vs2)
     lat = Lattice(bx)
@@ -38,7 +38,7 @@ def setup():
     shpb = vs.getPShape(this,0)
 
     for i in range(len(vs.values)):
-        vs.values[i] += vs2.values[i]
+        vs.values[i] += vs2.values[i]/1.6
         
         # alternative, worth a try
         #vs.values[i] -= abs(vs2.values[i])
